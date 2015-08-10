@@ -113,7 +113,7 @@ Net::SSH.start(@source, @source_user, password: @source_pass) do |conn|
       break
     else
       # User screwed up.
-      puts 'Please enter a valid choice'
+      puts 'Please be a good user and enter a valid numeric choice'
     end
   end
 end
