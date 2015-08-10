@@ -98,6 +98,17 @@ Net::SSH.start(@source, @source_user, password: @source_pass) do |conn|
       folder = Shellwords::escape(gets.strip)
       send_data(dir, File.join(@target_path, folder), '-r', conn)
     when 7
+      puts 'Enter archive file name'
+      puts 'In the case of a multipart archive, enter the base file'
+      archive = Shellwords::escape(gets.strip)
+      unless check_file(file, conn)
+        puts 'Specified archive does not exist. Please try again'
+        next
+      end
+      puts 'Enter a directory name to unarchive into'
+      target = Shellwords::escape(gets.strip)
+      unarchive(archive, target, conn)
+    when 8
       # User wants to exit.
       break
     else
