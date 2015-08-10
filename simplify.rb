@@ -81,6 +81,11 @@ Net::SSH.start(@source, @source_user, password: @source_pass) do |conn|
       folder = Shellwords::escape(gets.strip)
       send_data(file, File.join(@target_path, folder), '', conn)
     when 5
+      # User wants to send all files in current directory. Get target path and do it.
+      puts "Enter the directory (relative to #{@target_path}) to send to on the target host"
+      folder = Shellwords::escape(gets.strip)
+      send_data('*', File.join(@target_path, folder), '', conn)
+    when 6
       # User wants to send a directory. Get the source and target paths, and call send_data which will
       # do further validation.
       puts 'Enter the directory name'
@@ -92,7 +97,7 @@ Net::SSH.start(@source, @source_user, password: @source_pass) do |conn|
       puts "Enter the directory (relative to #{@target_path}) to send the chosen directory to on the target host"
       folder = Shellwords::escape(gets.strip)
       send_data(dir, File.join(@target_path, folder), '-r', conn)
-    when 6
+    when 7
       # User wants to exit.
       break
     else

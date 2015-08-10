@@ -6,8 +6,9 @@ def list_options
   puts '2. Enter directory'
   puts '3. Leave current directory'
   puts '4. Move file to target host'
-  puts '5. Move folder to target host'
-  puts '6. Exit'
+  puts '5. Move all files in current directory to target host'
+  puts '6. Move folder to target host'
+  puts '7. Exit'
 end
 
 # Method performs basic validation on target path, then calls rsync to move the file or directory.
@@ -17,7 +18,7 @@ def send_data(file, folder, recursive, connection)
     puts 'Creating intermediate directories...'
     Net::SSH.start(@target, @target_user, password: @target_pass) { |conn| conn.exec!("mkdir -p #{folder}") }
     channel = connection.open_channel do |chan|
-      chan.exec(in_directory + "rsync -P #{recursive} --rsh=ssh #{file} --bwlimit=3000 #{@target_user}@#{@target}:#{folder}") do |callbacks, success|
+      chan.exec(in_directory + "rsync -P #{recursive} --rsh=ssh #{file} --bwlimit=3000 '#{@target_user}@#{@target}:#{folder}'") do |callbacks, success|
         raise 'An error occured while executing a command' unless success
 
         callbacks.on_data do |_, data|
