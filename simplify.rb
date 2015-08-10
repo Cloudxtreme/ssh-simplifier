@@ -43,36 +43,60 @@ end
 
 # Open the remote session to the source host
 Net::SSH.start(@source, @source_user, password: @source_pass) do |conn|
+  # Check that the specified base directory actually exists.
   raise 'Base directory for source host does not exist' unless check_directory(@source_path, conn)
+
+  # Set the current directory state
   @current_dir = @source_path
+
   puts "Logged in and ready to go!"
   loop do
+    # Print options and get the user's input
     list_options
     choice = gets.to_i
+
     case choice
     when 1
+      # User wants to see directory contents. Execute a list command.
       puts conn.exec!(in_directory + 'ls').split("\n")[1..-1]
     when 2
+      # User wants to change directory. Get the directory to switch to, check that it exists,
+      # and update the directory state or inform the user of their mistake.
       puts 'Enter chosen directory name'
       dir = Shellwords::escape(gets.strip)
       check_relative_directory(dir, conn) ? change_directory(dir) : puts('Sorry, directory does not exist')
     when 3
+      # User wants to go up a level. Update directory state.
       leave_directory
     when 4
+      # User wants to send a file. Get the source and target paths, and call send_data which will
+      # do further validation.
       puts 'Enter the file name'
       file = Shellwords::escape(gets.strip)
+      unless check_file(file, conn)
+        puts 'Specified file does not exist. Please try again'
+        next
+      end
       puts "Enter the directory (relative to #{@target_path}) to send to on the target host"
       folder = Shellwords::escape(gets.strip)
       send_data(file, File.join(@target_path, folder), '', conn)
     when 5
+      # User wants to send a directory. Get the source and target paths, and call send_data which will
+      # do further validation.
       puts 'Enter the directory name'
       dir = Shellwords::escape(gets.strip)
+      unless check_relative_directory(dir, conn)
+        puts 'Specified directory does not exist. Please try again'
+        next
+      end
       puts "Enter the directory (relative to #{@target_path}) to send the chosen directory to on the target host"
       folder = Shellwords::escape(gets.strip)
       send_data(dir, File.join(@target_path, folder), '-r', conn)
     when 6
+      # User wants to exit.
       break
     else
+      # User screwed up.
       puts 'Please enter a valid choice'
     end
   end
